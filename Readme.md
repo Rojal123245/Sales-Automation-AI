@@ -1,119 +1,87 @@
-Sales Automation AI
+# Sales Automation AI
 
-Project Overview
+## Project Overview
 
 Sales Automation AI is a system designed to automate the inventory ordering process for retail stores. By analyzing past sales data, it predicts future demand, ensuring optimal stock levels. The system automatically places orders for items through warehouse systems using automation tools, generates performance reports, and provides insights into inventory management. It also serves as a SaaS product, allowing users to monitor AI performance and customize features.
 
-Roadmap
+## Roadmap
 
-Phase 1: Data Collection and Preprocessing
+### Phase 1: Data Collection and Preprocessing
 
-Objective: Gather and clean historical sales data.
+**Objective:** Gather and clean historical sales data.
 
-Steps:
+**Steps:**
+1. Collect 3 years of sales data, including item names, sales volume, prices, stock levels, and dates.
+2. Preprocess the data: Handle missing values, normalize numerical fields, and create derived features (e.g., moving averages, sell-through rates).
+3. Identify key performance metrics such as sales trends, revenue contribution, and stale inventory.
 
-Collect 3 years of sales data, including item names, sales volume, prices, stock levels, and dates.
+**Deliverables:**
+- Cleaned dataset with engineered features.
+- Summary statistics and visualizations for exploratory data analysis (EDA).
 
-Preprocess the data: Handle missing values, normalize numerical fields, and create derived features (e.g., moving averages, sell-through rates).
+### Phase 2: Model Development
 
-Identify key performance metrics such as sales trends, revenue contribution, and stale inventory.
+**Objective:** Build predictive models for sales and inventory management.
 
-Deliverables:
+**Steps:**
+1. Develop regression models (e.g., Linear Regression, ARIMA) for future sales predictions.
+2. Use classification models (e.g., Random Forest, Logistic Regression) to label items as "Reorder," "Review," or "No Action."
+3. Validate models with metrics such as RMSE, precision, and recall.
 
-Cleaned dataset with engineered features.
+**Deliverables:**
+- Trained and validated prediction models.
+- Code to retrain models periodically with new data.
 
-Summary statistics and visualizations for exploratory data analysis (EDA).
+### Phase 3: Automation System
 
-Phase 2: Model Development
+**Objective:** Automate the ordering process.
 
-Objective: Build predictive models for sales and inventory management.
+**Steps:**
+1. Use Selenium or similar tools to interact with warehouse systems and place orders.
+2. Implement logic to input item codes/names, quantities, and confirm orders.
+3. Set up logging and error handling for automation tasks.
 
-Steps:
+**Deliverables:**
+- Automated ordering scripts.
+- Configurable settings for warehouse integration.
 
-Develop regression models (e.g., Linear Regression, ARIMA) for future sales predictions.
+### Phase 4: Reporting and Insights
 
-Use classification models (e.g., Random Forest, Logistic Regression) to label items as "Reorder," "Review," or "No Action."
+**Objective:** Provide actionable insights for users.
 
-Validate models with metrics such as RMSE, precision, and recall.
+**Steps:**
+1. Create dashboards showing:
+   - Top-performing items.
+   - Underperforming items.
+   - Suggested reorder quantities.
+   - Stock level forecasts.
+2. Generate downloadable reports (e.g., PDF, CSV).
 
-Deliverables:
+**Deliverables:**
+- Interactive dashboard and periodic report generation functionality.
 
-Trained and validated prediction models.
+### Phase 5: SaaS Product Development
 
-Code to retrain models periodically with new data.
+**Objective:** Make the system available as a SaaS product.
 
-Phase 3: Automation System
+**Steps:**
+1. Develop a multi-tenant web application with user authentication and access control.
+2. Implement an admin panel for configuration and monitoring.
+3. Offer subscription plans and billing integrations.
 
-Objective: Automate the ordering process.
+**Deliverables:**
+- Deployed SaaS platform.
+- Documentation for onboarding users.
 
-Steps:
+### Phase 6: Testing and Deployment
 
-Use Selenium or similar tools to interact with warehouse systems and place orders.
+**Objective:** Ensure system reliability and scalability.
 
-Implement logic to input item codes/names, quantities, and confirm orders.
+**Steps:**
+1. Conduct unit, integration, and end-to-end testing.
+2. Test automation scripts across different warehouse platforms.
+3. Deploy the system on cloud infrastructure (e.g., AWS, GCP, Azure).
 
-Set up logging and error handling for automation tasks.
-
-Deliverables:
-
-Automated ordering scripts.
-
-Configurable settings for warehouse integration.
-
-Phase 4: Reporting and Insights
-
-Objective: Provide actionable insights for users.
-
-Steps:
-
-Create dashboards showing:
-
-Top-performing items.
-
-Underperforming items.
-
-Suggested reorder quantities.
-
-Stock level forecasts.
-
-Generate downloadable reports (e.g., PDF, CSV).
-
-Deliverables:
-
-Interactive dashboard and periodic report generation functionality.
-
-Phase 5: SaaS Product Development
-
-Objective: Make the system available as a SaaS product.
-
-Steps:
-
-Develop a multi-tenant web application with user authentication and access control.
-
-Implement an admin panel for configuration and monitoring.
-
-Offer subscription plans and billing integrations.
-
-Deliverables:
-
-Deployed SaaS platform.
-
-Documentation for onboarding users.
-
-Phase 6: Testing and Deployment
-
-Objective: Ensure system reliability and scalability.
-
-Steps:
-
-Conduct unit, integration, and end-to-end testing.
-
-Test automation scripts across different warehouse platforms.
-
-Deploy the system on cloud infrastructure (e.g., AWS, GCP, Azure).
-
-Deliverables:
-
-Tested and deployed system.
-
-Post-deployment monitoring setup.
+**Deliverables:**
+- Tested and deployed system.
+- Post-deployment monitoring setup.
