@@ -1,1 +1,111 @@
 
+name: Sales Automation AI Pipeline
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    - cron: "0 0 * * *" # Daily retraining
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: "3.8"
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install black isort pytest pytest-cov
+      - name: Lint
+        run: |
+          black . --check
+          isort . --check
+      - name: Test
+        run: |
+          pytest tests/ --cov=models --cov-report=xml
+      - name: Upload coverage
+        uses: codecov/codecov-action@v3
+
+  train:
+    needs: quality
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: "3.8"
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Train model
+        run: python main.py
+      - name: Save model artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: model-artifacts
+          path: |
+            models/saved/*.pkl
+            models/metrics.json
+
+  evaluate:
+    needs: train
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Download artifacts
+        uses: actions/download-artifact@v2
+        with:
+          name: model-artifacts
+      - name: Check metrics
+        run: |
+          python scripts/evaluate_metrics.py
+          if [ $? -eq 0 ]; then
+            echo "::set-output name=deploy::true"
+          fi
+
+  deploy:
+    needs: evaluate
+    if: needs.evaluate.outputs.deploy == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Configure AWS
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+      - name: Download model
+        uses: actions/download-artifact@v2
+        with:
+          name: model-artifacts
+      - name: Deploy model
+        run: |
+          aws s3 cp models/saved/model.pkl s3://sales-automation-models/
+          aws lambda update-function-code --function-name sales-prediction --s3-bucket sales-automation-models --s3-key model.pkl
+
+  monitor:
+    needs: deploy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Monitor deployment
+        run: |
+          python scripts/monitor_metrics.py
+      - name: Alert on issues
+        if: failure()
+        uses: actions/github-script@v6
+        with:
+          script: |
+            github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: 'Model Performance Alert',
+              body: 'Production metrics below threshold'
+            })

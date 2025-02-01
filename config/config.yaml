@@ -1,0 +1,18 @@
+data:
+  input_path: "data/retail_store_data.csv"
+  output_path: "data/processed/"
+
+model:
+  arima_params:
+    order: [1, 1, 1]
+    seasonal: false
+
+features:
+  numeric_cols:
+    ["price", "instock", "totalstock", "sales", "stockleft", "revenue"]
+  date_col: "date"
+  target: "sales"
+
+logging:
+  level: "INFO"
+  path: "logs/app.log"
