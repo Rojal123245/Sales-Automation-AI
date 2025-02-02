@@ -3,14 +3,13 @@ data:
   output_path: "data/processed/"
 
 model:
-  arima_params:
-    order: [1, 1, 1]
-    seasonal: false
+  arima_order: (1,0,0)
+  save_path: "models/saved/sales_forecast.pkl"
 
 features:
   numeric_cols:
     ["price", "instock", "totalstock", "sales", "stockleft", "revenue"]
-  date_col: "date"
+  date_col: "Date"
   target: "sales"
 
 logging:
