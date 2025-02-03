@@ -1,5 +1,5 @@
 data:
-  input_path: "data/retail_store_data.csv"
+  input_path: "data/retail_store_data_with_real_items.csv"
   output_path: "data/processed/"
 
 model:

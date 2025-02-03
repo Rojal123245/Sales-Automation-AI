@@ -1,6 +1,6 @@
 import pytest
 import pandas as pd
-from models import DataPreprocessor, ModelTrainer, ModelEvaluator
+from models import DataPreprocessor, ModelEvaluator
 
 def test_preprocessor():
     sample_data = pd.DataFrame({
