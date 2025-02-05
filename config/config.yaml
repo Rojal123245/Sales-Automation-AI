@@ -1,16 +1,16 @@
 data:
   input_path: "data/retail_store_data_with_real_items.csv"
-  output_path: "data/processed/"
+  output_path: "data/processed/retail_store_data_processed.csv"
+  save_dir: "data/model/"
 
 model:
   arima_order: (1,0,0)
   save_path: "models/saved/sales_forecast.pkl"
 
 features:
-  numeric_cols:
-    ["price", "instock", "totalstock", "sales", "stockleft", "revenue"]
+  numeric_cols: ["Price", "Total Stock", "Sales", "Stock Left", "Revenue"]
   date_col: "Date"
-  target: "sales"
+  target: "Sales"
 
 logging:
   level: "INFO"
