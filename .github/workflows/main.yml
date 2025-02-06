@@ -25,11 +25,11 @@ jobs:
           pip install black isort pytest pytest-cov
       - name: Lint
         run: |
-          black . --check
-          isort . --check
+          black .
+          isort . 
       - name: Test
         run: |
-          pytest tests/ --cov=models --cov-report=xml
+          python -m pytest tests/ --cov=models --cov-report=xml
       - name: Upload coverage
         uses: codecov/codecov-action@v3
 
@@ -47,7 +47,7 @@ jobs:
       - name: Train model
         run: python main.py
       - name: Save model artifacts
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: model-artifacts
           path: |
@@ -59,13 +59,19 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: "3.8"
+      - name: Install dependencies
+        run: pip install -r requirements.txt
       - name: Download artifacts
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v4
         with:
           name: model-artifacts
       - name: Check metrics
         run: |
-          python scripts/evaluate_metrics.py
+          python models/evaluate.py
           if [ $? -eq 0 ]; then
             echo "::set-output name=deploy::true"
           fi

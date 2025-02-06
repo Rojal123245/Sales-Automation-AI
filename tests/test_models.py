@@ -4,10 +4,10 @@ from models import DataPreprocessor, ModelEvaluator
 
 def test_preprocessor():
     sample_data = pd.DataFrame({
-        'date': ['2024-01-01'],
+        'Date': ['2024-01-01'],
         'sales': [100]
     })
-    config = {'features': {'numeric_cols': ['sales'], 'date_col': 'date'}}
+    config = {'features': {'numeric_cols': ['sales'], 'date_col': 'Date'}}
     preprocessor = DataPreprocessor(config)
     processed_data = preprocessor.process(sample_data)
-    assert isinstance(processed_data, pd.DataFrame)
+    assert isinstance(processed_data, pd.DataFrame) 
