@@ -65,7 +65,7 @@ jobs:
           name: model-artifacts
       - name: Check metrics
         run: |
-          python scripts/evaluate_metrics.py
+          python models/evaluate.py
           if [ $? -eq 0 ]; then
             echo "::set-output name=deploy::true"
           fi
