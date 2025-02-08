@@ -22,7 +22,8 @@ def main():
     evaluator = ModelEvaluator(config)
     df = evaluator.load_data()
     evaluator.adf_test(df['Sales'])\
-             .plot_sales_trend(df)
+             .plot_sales_trend(df)\
+             .plot_forecast(df)
     report = evaluator.generate_report()
     print("\nEvaluation Report:")
     print(report)
