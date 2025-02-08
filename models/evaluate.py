@@ -33,9 +33,40 @@ class ModelEvaluator:
         plt.savefig('reports/sales_trend.png')
         plt.close()
         return self
+
+    def plot_forecast(self, df: pd.DataFrame):
+        train_size = int(len(df) * 0.8)
+        train_data = df[:train_size]
+        test_data = df[train_size:]
+        
+        # Create forecast plot
+        plt.figure(figsize=(12,6))
+        plt.plot(train_data.index[-30:], 
+                train_data['Sales'][-30:], 
+                label='Training')
+        plt.plot(test_data.index[:30], 
+                test_data['Sales'][:30], 
+                label='Actual')
+        
+        if 'Forecast' in test_data.columns:
+            plt.plot(test_data.index[:30], 
+                    test_data['Forecast'][:30], 
+                    label='Forecast')
+        
+        # Save results for report
+        self.results['train_data'] = train_data
+        self.results['test_data'] = test_data
+        
+        plt.title('Sales Forecast Analysis')
+        plt.legend()
+        plt.savefig('reports/forecast.png')
+        plt.close()
+        
+        return self
+
     
     def generate_report(self):
         return {
             'stationarity_test': self.results['adf'],
-            'plots': ['sales_trend.png']
+            'plots': ['sales_trend.png', 'forecast.png']
         }
