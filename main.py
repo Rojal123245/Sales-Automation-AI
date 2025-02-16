@@ -23,7 +23,7 @@ def main():
     df = evaluator.load_data()
     evaluator.adf_test(df['Sales'])\
              .plot_sales_trend(df)\
-             .plot_forecast(df)
+             .plot_forecast(df, model)
     report = evaluator.generate_report()
     print("\nEvaluation Report:")
     print(report)
