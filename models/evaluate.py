@@ -34,7 +34,7 @@ class ModelEvaluator:
         plt.close()
         return self
 
-    def plot_forecast(self, df: pd.DataFrame):
+    def plot_forecast(self, df: pd.DataFrame, model):
         train_size = int(len(df) * 0.8)
         train_data = df[:train_size]
         test_data = df[train_size:]
@@ -47,11 +47,11 @@ class ModelEvaluator:
         plt.plot(test_data.index[:30], 
                 test_data['Sales'][:30], 
                 label='Actual')
-        
-        if 'Forecast' in test_data.columns:
-            plt.plot(test_data.index[:30], 
-                    test_data['Forecast'][:30], 
-                    label='Forecast')
+
+        forecast = model.forecast(steps=len(test_data))
+        plt.plot(test_data.index[:30], 
+            forecast[:30], 
+            label='Forecast')
         
         # Save results for report
         self.results['train_data'] = train_data
