@@ -35,34 +35,63 @@ class ModelEvaluator:
         return self
 
     def plot_forecast(self, df: pd.DataFrame, model):
-        train_size = int(len(df) * 0.8)
-        train_data = df[:train_size]
-        test_data = df[train_size:]
-        
-        # Create forecast plot
-        plt.figure(figsize=(12,6))
-        plt.plot(train_data.index[-30:], 
-                train_data['Sales'][-30:], 
-                label='Training')
-        plt.plot(test_data.index[:30], 
-                test_data['Sales'][:30], 
-                label='Actual')
-
-        forecast = model.forecast(steps=len(test_data))
-        plt.plot(test_data.index[:30], 
-            forecast[:30], 
-            label='Forecast')
-        
-        # Save results for report
-        self.results['train_data'] = train_data
-        self.results['test_data'] = test_data
-        
-        plt.title('Sales Forecast Analysis')
-        plt.legend()
-        plt.savefig('reports/forecast.png')
-        plt.close()
-        
-        return self
+            """Plot forecast with improved visualization"""
+            # Split data
+            train_size = int(len(df) * 0.8)
+            train_data = df[:train_size]
+            test_data = df[train_size:]
+            
+            # Generate forecast
+            forecast = model.forecast(steps=len(test_data))
+            
+            # Create plot
+            plt.figure(figsize=(15, 8))
+            
+            # Plot training data (last 30 days)
+            plt.plot(train_data.index[-30:], 
+                    train_data['Sales'][-30:], 
+                    'b-', label='Training Data')
+            
+            # Plot test data
+            plt.plot(test_data.index[:30], 
+                    test_data['Sales'][:30], 
+                    'g-', label='Actual Values')
+            
+            # Plot forecast
+            plt.plot(test_data.index[:30], 
+                    forecast[:30], 
+                    'r--', label='Forecast')
+            
+            plt.title('Sales Forecast Analysis', fontsize=12)
+            plt.xlabel('Date', fontsize=10)
+            plt.ylabel('Sales', fontsize=10)
+            plt.grid(True, linestyle='--', alpha=0.7)
+            plt.legend(loc='best')
+            
+            # Rotate x-axis labels
+            plt.xticks(rotation=45)
+            
+            # Add confidence intervals
+            if hasattr(model, 'get_forecast'):
+                forecast_obj = model.get_forecast(steps=30)
+                conf_int = forecast_obj.conf_int()
+                plt.fill_between(test_data.index[:30],
+                            conf_int.iloc[:30, 0],
+                            conf_int.iloc[:30, 1],
+                            color='r', alpha=0.1)
+            
+            plt.tight_layout()
+            plt.savefig('reports/forecast.png')
+            plt.close()
+            
+            # Calculate metrics
+            rmse = np.sqrt(((test_data['Sales'][:30] - forecast[:30]) ** 2).mean())
+            self.results['metrics'] = {
+                'rmse': rmse,
+                'forecast_length': len(forecast)
+            }
+            
+            return self
 
     
     def generate_report(self):
