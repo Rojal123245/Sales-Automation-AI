@@ -1,6 +1,8 @@
 # Model files
 *.pkl
-models/saved/
+models/saved/*.pkl
+models/saved/*.model
+models/saved/*.bin
 *.model
 
 # Data files
