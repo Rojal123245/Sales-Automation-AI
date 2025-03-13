@@ -5,3 +5,8 @@ matplotlib
 seaborn
 statsmodels
 scikit-learn
+# Automation packages
+selenium
+webdriver-manager
+requests
+python-dotenv

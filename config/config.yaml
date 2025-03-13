@@ -2,6 +2,7 @@ data:
   input_path: "data/retail_store_data_with_real_items.csv"
   output_path: "data/processed/retail_store_data_processed.csv"
   save_dir: "data/model/"
+  predictions_path: "data/processed/predictions.csv"
 
 model:
   arima_order: (1,0,0)
@@ -15,3 +16,17 @@ features:
 logging:
   level: "INFO"
   path: "logs/app.log"
+
+# Warehouse automation configuration
+automation:
+  warehouse:
+    base_url: "https://warehouse-system.example.com"
+    login_endpoint: "/api/auth/login"
+    order_endpoint: "/api/orders/new"
+    timeout: 30
+    retry_attempts: 3
+  credentials:
+    env_file: ".env" # Store credentials in an .env file
+  order_settings:
+    min_threshold: 10 # Minimum stock level to trigger reorder
+    max_delay_days: 7 # Maximum days to wait for delivery

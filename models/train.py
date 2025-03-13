@@ -86,3 +86,4 @@ class SalesForecastTrainer:
         self.fit_model()
         self.save_model()
         return self.model_fit
+    
