@@ -10,3 +10,5 @@ selenium
 webdriver-manager
 requests
 python-dotenv
+# Download utilities
+tqdm

@@ -7,6 +7,8 @@ data:
 model:
   arima_order: (1,0,0)
   save_path: "models/saved/sales_forecast.pkl"
+  # URL to download pre-trained model (replace with your actual URL)
+  download_url: "https://example.com/models/sales_forecast.pkl"
 
 features:
   numeric_cols: ["Price", "Total Stock", "Sales", "Stock Left", "Revenue"]

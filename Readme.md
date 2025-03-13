@@ -24,8 +24,50 @@ sales-automation/
 │   └── test_models.py
 ├── notebooks/
 │   └── exploration.ipynb
+├── automation/
+│   ├── __init__.py
+│   ├── warehouse.py
+│   ├── order_manager.py
+│   └── visualization.py
+├── scripts/
+│   └── download_models.py
 └── main.py
 
+```
+
+## Getting Started
+
+1. **Install Dependencies**:
+
+```bash
+pip install -r requirements.txt
+```
+
+2. **Set Up Configuration**:
+
+Edit `config/config.yaml` to customize settings.
+
+3. **Get Model Files**:
+
+The model files are not included in the repository due to size constraints. You have two options:
+
+- **Train the model locally**:
+
+  ```bash
+  python main.py --mode train
+  ```
+
+- **Download pre-trained models**:
+  ```bash
+  python scripts/download_models.py
+  ```
+
+For more details on model handling, see [README_MODEL_HANDLING.md](README_MODEL_HANDLING.md).
+
+4. **Run the automation**:
+
+```bash
+python main.py --mode automate
 ```
 
 ## Roadmap
