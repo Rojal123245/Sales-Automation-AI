@@ -37,4 +37,5 @@ var/
 *.egg
 
 # Environment variables
-.env
+.envmodels/saved/*.pkl
+*.pkl
