@@ -4,16 +4,31 @@ models/saved/*.pkl
 models/saved/*.model
 models/saved/*.bin
 *.model
+*.weights
+*.h5
+*.onnx
+*.pb
+*.pt
+*.pth
 
 # Data files
 *.csv
 data/processed/
 data/raw/
+*.xlsx
+*.xls
+*.json
+!config/*.json
+*.xml
+*.parquet
+*.feather
 
 # Logs and reports
 *.log
 reports/
 logs/
+*.html
+!webapp/templates/**/*.html
 
 # Python
 __pycache__/
@@ -22,6 +37,24 @@ models/__pycache__/
 *$py.class
 .Python
 env/
+venv/
+ENV/
+.venv/
+wandb/
+.ipynb_checkpoints
+__pypackages__/
+celerybeat-schedule
+celerybeat.pid
+*.sage.py
+.spyderproject
+.spyproject
+.ropeproject
+/site
+.mypy_cache/
+.pyre/
+.pytype/
+cython_debug/
+poetry.lock
 build/
 develop-eggs/
 dist/
@@ -36,6 +69,97 @@ var/
 *.egg-info/
 .installed.cfg
 *.egg
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.nox/
+coverage.xml
+*.cover
 
 # Environment variables
 .env
+.env.local
+.env.development
+.env.test
+.env.production
+
+# IDE specific files
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+.ipynb_checkpoints/
+*.sublime-project
+*.sublime-workspace
+.project
+.pydevproject
+.settings/
+
+# Flask specific
+instance/
+.webassets-cache
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Temporary files
+tmp/
+temp/
+.tmp/
+.temp/
+
+# Packaging
+*.tgz
+*.tar.gz
+*.zip
+*.rar
+
+# Media files
+*.jpg
+*.jpeg
+*.png
+*.gif
+*.ico
+!webapp/static/img/*.jpg
+!webapp/static/img/*.jpeg
+!webapp/static/img/*.png
+!webapp/static/img/*.gif
+!webapp/static/img/*.ico
+!webapp/static/favicon.ico
+
+# JavaScript and web dependencies
+node_modules/
+bower_components/
+.sass-cache/
+
+# AI/ML specific
+*.ckpt
+runs/
+.neptune/
+ray_results/
+mlruns/
+.aim/
+.dvc/
+dvc.lock
+.vector_cache/
+.clearml/
+lightning_logs/
+.guild/
+
+# Project specific
+scratch/
+automation/credentials/
+automation/cached_data/
+*.bak
+*~$*
+sales_automation_ai.yaml
+config/credentials.yaml
+*_local_config.yaml
+user_preferences/
+demo/
+sandbox/
+.cache/
