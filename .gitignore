@@ -7,8 +7,10 @@ models/saved/*.bin
 
 # Data files
 *.csv
+data/
 data/processed/
 data/raw/
+data/**/*
 
 # Logs and reports
 *.log
@@ -38,3 +40,18 @@ var/
 
 # Environment variables
 .env
+
+# Python cache files
+**/__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+models/__pycache__/*
+utils/__pycache__/*
+tests/__pycache__/*
+automation/__pycache__/*
+
+# VS Code
+.vscode/

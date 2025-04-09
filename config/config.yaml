@@ -22,13 +22,15 @@ logging:
 # Warehouse automation configuration
 automation:
   warehouse:
-    base_url: "https://warehouse-system.example.com"
-    login_endpoint: "/api/auth/login"
-    order_endpoint: "/api/orders/new"
+    base_url: "https://www.walmart.ca/en" # Replace with actual warehouse URL
     timeout: 30
     retry_attempts: 3
-  credentials:
-    env_file: ".env" # Store credentials in an .env file
+    order_endpoint: "/api/v1/orders"
+  costco:
+    base_url: "https://www.costco.com"
+    timeout: 30
+    retry_attempts: 3
+    search_endpoint: "/search"
   order_settings:
     min_threshold: 10 # Minimum stock level to trigger reorder
     max_delay_days: 7 # Maximum days to wait for delivery

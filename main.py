@@ -3,29 +3,23 @@ from utils.logging_config import setup_logging
 from models.preprocess import DataPreprocessor
 from models.train import SalesForecastTrainer
 from models.evaluate import ModelEvaluator
-from automation.order_manager import OrderManager
 import argparse
 import logging
+import sys
+import traceback
+from pathlib import Path
+from datetime import datetime
+import json
 
-def main():
-    # Parse command line arguments
-    parser = argparse.ArgumentParser(description='Sales Automation AI')
-    parser.add_argument('--config', default='config/config.yaml', help='Path to config file')
-    parser.add_argument('--mode', choices=['train', 'predict', 'automate', 'full'], default='full',
-                        help='Operation mode: train, predict, automate, or full pipeline')
-    args = parser.parse_args()
+def setup_environment():
+    """Setup necessary directories and environment"""
+    dirs = ['logs', 'data/processed', 'models/saved', 'reports']
+    for dir_path in dirs:
+        Path(dir_path).mkdir(parents=True, exist_ok=True)
 
-    # Load and validate configuration
-    config = ConfigHandler.load_config(args.config)
-    ConfigHandler.validate_config(config)
-    
-    # Setup logging
-    setup_logging(config)
-    logger = logging.getLogger(__name__)
-    
-    logger.info(f"Starting Sales Automation AI in {args.mode} mode")
-
-    if args.mode in ['train', 'full']:
+def handle_training(config, logger):
+    """Handle the training pipeline"""
+    try:
         # Data preprocessing
         logger.info("Starting data preprocessing")
         preprocessor = DataPreprocessor(config)
@@ -44,44 +38,112 @@ def main():
         trainer = SalesForecastTrainer(config)
         model = trainer.full_pipeline()
         logger.info("Model training complete")
+        
+        return model
+    except Exception as e:
+        logger.error(f"Training pipeline failed: {str(e)}")
+        logger.debug(traceback.format_exc())
+        return None
 
-    if args.mode in ['predict', 'automate', 'full']:
-        # Model evaluation and prediction
+def handle_prediction(config, logger, model=None):
+    """Handle the prediction pipeline"""
+    try:
         logger.info("Evaluating model and generating predictions")
         evaluator = ModelEvaluator(config)
         data = evaluator.load_data()
-        evaluator.adf_test(data['Sales']).\
-                plot_sales_trend(data).\
-                plot_forecast(data, model)
+        
+        # Run statistical tests and generate plots
+        evaluator.adf_test(data['Sales'])
+        evaluator.plot_sales_trend(data)
+        evaluator.plot_forecast(data, model)
+        
+        # Generate report
         report = evaluator.generate_report()
-        logger.info(f"Evaluation complete: RMSE={report.get('rmse', 'N/A')}")
+        logger.info(f"Evaluation complete: RMSE={report.get('performance_metrics', {}).get('rmse', 'N/A')}")
         
-        # Get data with predictions for automation
-        predicted_data = evaluator.get_prediction_data()
-
-    if args.mode in ['automate', 'full']:
-        # Run the automation process
-        logger.info("Starting automation process")
-        order_manager = OrderManager(config)
-        
-        if 'predicted_data' not in locals():
-            logger.warning("No prediction data available. Loading from file...")
-            evaluator = ModelEvaluator(config)
-            predicted_data = evaluator.get_prediction_data()
-        
-        if predicted_data is not None and not predicted_data.empty:
-            success, order_results = order_manager.run_ordering_process(predicted_data)
+        # Save report to file
+        try:
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            report_path = Path(f"reports/evaluation_report_{timestamp}.json")
             
-            if success:
-                logger.info("Automation process completed successfully")
-                if order_results:
-                    logger.info(f"Placed {len(order_results)} orders")
-            else:
-                logger.warning("Automation process completed with errors")
-        else:
-            logger.error("No prediction data available for automation")
+            # Ensure the reports directory exists
+            report_path.parent.mkdir(parents=True, exist_ok=True)
+            
+            # Convert any numpy values to Python native types for JSON serialization
+            def convert_to_native_types(obj):
+                if hasattr(obj, 'item'):  # Handle numpy scalars
+                    return obj.item()
+                elif isinstance(obj, (list, tuple)):
+                    return [convert_to_native_types(item) for item in obj]
+                elif isinstance(obj, dict):
+                    return {k: convert_to_native_types(v) for k, v in obj.items()}
+                return obj
+            
+            report = convert_to_native_types(report)
+            
+            with open(report_path, 'w') as f:
+                json.dump(report, f, indent=4)
+            logger.info(f"Evaluation report saved to {report_path}")
+        except Exception as e:
+            logger.error(f"Failed to save evaluation report: {str(e)}")
+        
+        return evaluator.get_prediction_data()
+    except Exception as e:
+        logger.error(f"Prediction pipeline failed: {str(e)}")
+        logger.debug(traceback.format_exc())
+        return None
 
-    logger.info("Sales Automation AI execution complete")
+def main():
+    try:
+        # Setup environment
+        setup_environment()
+        
+        # Parse command line arguments
+        parser = argparse.ArgumentParser(description='Sales Automation AI')
+        parser.add_argument('--config', default='config/config.yaml', 
+                          help='Path to config file')
+        parser.add_argument('--mode', 
+                          choices=['train', 'predict', 'full'], 
+                          default='full',
+                          help='Operation mode: train, predict, or full pipeline')
+        parser.add_argument('--debug', action='store_true', 
+                          help='Enable debug logging')
+        args = parser.parse_args()
+
+        # Load and validate configuration
+        config = ConfigHandler.load_config(args.config)
+        ConfigHandler.validate_config(config)
+        
+        # Update logging level if debug flag is set
+        if args.debug:
+            config['logging']['level'] = 'DEBUG'
+        
+        # Setup logging
+        setup_logging(config)
+        logger = logging.getLogger(__name__)
+        
+        logger.info(f"Starting Sales Automation AI in {args.mode} mode")
+        
+        model = None
+        predicted_data = None
+
+        # Execute pipeline based on mode
+        if args.mode in ['train', 'full']:
+            model = handle_training(config, logger)
+            if model is None and args.mode == 'train':
+                sys.exit(1)
+
+        if args.mode in ['predict', 'full']:
+            predicted_data = handle_prediction(config, logger, model)
+            if predicted_data is None and args.mode == 'predict':
+                sys.exit(1)
+
+        logger.info("Sales Automation AI execution complete")
+        
+    except Exception as e:
+        logger.error(f"Application failed: {str(e)}")
+        logger.debug(traceback.format_exc())
+        sys.exit(1)
 
 if __name__ == "__main__":
     main()

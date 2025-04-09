@@ -205,17 +205,35 @@ class ModelEvaluator:
         if not all([self.data is not None, self.train_data is not None, 
                    self.test_data is not None, self.forecast is not None]):
             raise ValueError("Must run plot_forecast before generating report")
-            
+        
+        # Calculate temporal metrics
+        temporal_metrics = self._calculate_temporal_metrics()
+        
+        # Log temporal metrics
+        self._log_temporal_metrics(temporal_metrics)
+        
+        # Calculate additional metrics
+        residuals = self.test_data['Sales'][:30] - self.forecast[:30]
+        
+        from scipy import stats
+        
         return {
             'stationarity_test': self.results.get('adf', {}),
-            'performance_metrics': self.results.get('metrics', {}),
+            'performance_metrics': {
+                **self.results.get('metrics', {}),
+                'residual_normality': stats.normaltest(residuals)[1],
+                'residual_autocorr': stats.pearsonr(residuals[:-1], residuals[1:])[0],
+                'forecast_bias': np.mean(residuals),
+                'forecast_variance': np.var(residuals)
+            },
             'model_info': {
                 'train_size': len(self.train_data),
                 'test_size': len(self.test_data),
-                'forecast_horizon': len(self.forecast)
+                'forecast_horizon': len(self.forecast),
+                'feature_importance': self._calculate_feature_importance(),
+                'temporal_metrics': temporal_metrics
             },
-            'feature_importance': self._calculate_feature_importance(),
-            'plots': ['sales_trend.png', 'forecast.png']
+            'plots': ['sales_trend.png', 'forecast.png', 'residuals.png']
         }
 
     def _calculate_feature_importance(self):
@@ -225,6 +243,115 @@ class ModelEvaluator:
             corr = np.corrcoef(self.data[feature], self.data['Sales'])[0,1]
             correlations[feature] = abs(corr)
         return dict(sorted(correlations.items(), key=lambda x: x[1], reverse=True))
+
+    def _calculate_temporal_metrics(self):
+        """
+        Calculate metrics specific to temporal patterns with proper handling of edge cases
+        """
+        weekly_accuracy = {}
+        monthly_accuracy = {}
+        
+        # Helper function to calculate accuracy safely
+        def safe_accuracy_calculation(actual, predicted):
+            if len(actual) == 0:
+                return None
+            
+            # Handle division by zero and invalid values
+            mask = (actual != 0) & (~np.isnan(actual)) & (~np.isnan(predicted))
+            if not mask.any():
+                return None
+            
+            actual_filtered = actual[mask]
+            predicted_filtered = predicted[mask]
+            
+            if len(actual_filtered) == 0:
+                return None
+            
+            percentage_errors = np.abs((actual_filtered - predicted_filtered) / actual_filtered) * 100
+            # Remove extreme outliers (more than 3 std from mean)
+            mean_error = np.mean(percentage_errors)
+            std_error = np.std(percentage_errors)
+            valid_errors = percentage_errors[percentage_errors <= mean_error + 3 * std_error]
+            
+            if len(valid_errors) == 0:
+                return None
+            
+            return {
+                'mape': np.mean(valid_errors),
+                'median_ape': np.median(valid_errors),
+                'std_ape': np.std(valid_errors),
+                'sample_size': len(valid_errors),
+                'total_samples': len(actual)
+            }
+
+        # Weekly patterns
+        day_names = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+        for day in range(7):
+            mask = (self.test_data['dayofweek'] == day)
+            accuracy = safe_accuracy_calculation(
+                self.test_data[mask]['Sales'].values,
+                self.forecast[mask]
+            )
+            if accuracy is not None:
+                weekly_accuracy[day_names[day]] = accuracy
+
+        # Monthly patterns
+        month_names = ['January', 'February', 'March', 'April', 'May', 'June',
+                      'July', 'August', 'September', 'October', 'November', 'December']
+        for month in range(1, 13):
+            mask = (self.test_data['month'] == month)
+            accuracy = safe_accuracy_calculation(
+                self.test_data[mask]['Sales'].values,
+                self.forecast[mask]
+            )
+            if accuracy is not None:
+                monthly_accuracy[month_names[month-1]] = accuracy
+
+        # Add overall temporal statistics
+        overall_stats = {
+            'weekly_coverage': len(weekly_accuracy) / 7 * 100,
+            'monthly_coverage': len(monthly_accuracy) / 12 * 100,
+            'best_performing_day': min(weekly_accuracy.items(), 
+                                     key=lambda x: x[1]['mape'])[0] if weekly_accuracy else None,
+            'worst_performing_day': max(weekly_accuracy.items(), 
+                                      key=lambda x: x[1]['mape'])[0] if weekly_accuracy else None,
+            'best_performing_month': min(monthly_accuracy.items(), 
+                                       key=lambda x: x[1]['mape'])[0] if monthly_accuracy else None,
+            'worst_performing_month': max(monthly_accuracy.items(), 
+                                        key=lambda x: x[1]['mape'])[0] if monthly_accuracy else None
+        }
+
+        return {
+            'weekly_accuracy': weekly_accuracy,
+            'monthly_accuracy': monthly_accuracy,
+            'overall_stats': overall_stats
+        }
+
+    def _log_temporal_metrics(self, metrics):
+        """
+        Log temporal metrics analysis
+        """
+        self.logger.info("Temporal Metrics Analysis:")
+        
+        # Log weekly patterns
+        self.logger.info("\nWeekly Patterns:")
+        for day, stats in metrics['weekly_accuracy'].items():
+            self.logger.info(f"{day:10}: MAPE={stats['mape']:.2f}% (n={stats['sample_size']})")
+        
+        # Log monthly patterns
+        self.logger.info("\nMonthly Patterns:")
+        for month, stats in metrics['monthly_accuracy'].items():
+            self.logger.info(f"{month:10}: MAPE={stats['mape']:.2f}% (n={stats['sample_size']})")
+        
+        # Log overall stats
+        self.logger.info("\nOverall Temporal Statistics:")
+        stats = metrics['overall_stats']
+        self.logger.info(f"Weekly Coverage: {stats['weekly_coverage']:.1f}%")
+        self.logger.info(f"Monthly Coverage: {stats['monthly_coverage']:.1f}%")
+        self.logger.info(f"Best Performing Day: {stats['best_performing_day']}")
+        self.logger.info(f"Worst Performing Day: {stats['worst_performing_day']}")
+        self.logger.info(f"Best Performing Month: {stats['best_performing_month']}")
+        self.logger.info(f"Worst Performing Month: {stats['worst_performing_month']}")
 
     def get_prediction_data(self) -> pd.DataFrame:
         """
