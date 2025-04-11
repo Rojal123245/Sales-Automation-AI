@@ -16,7 +16,7 @@ features:
   target: "Sales"
 
 logging:
-  level: "INFO"
+  level: "INFO" # Change to "DEBUG" for more detailed logs
   path: "logs/app.log"
 
 # Warehouse automation configuration
@@ -32,5 +32,10 @@ automation:
     retry_attempts: 3
     search_endpoint: "/search"
   order_settings:
-    min_threshold: 10 # Minimum stock level to trigger reorder
-    max_delay_days: 7 # Maximum days to wait for delivery
+    min_threshold: 20 # Set this higher to catch more low-stock items
+    safety_stock_margin: 1.2
+    max_order_quantity: 100
+  api:
+    base_url: "https://fakestoreapi.com"
+    timeout: 30
+    retry_attempts: 3

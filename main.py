@@ -10,6 +10,7 @@ import traceback
 from pathlib import Path
 from datetime import datetime
 import json
+from automation.inventory_manager import InventoryManager
 
 def setup_environment():
     """Setup necessary directories and environment"""
@@ -61,6 +62,9 @@ def handle_prediction(config, logger, model=None):
         report = evaluator.generate_report()
         logger.info(f"Evaluation complete: RMSE={report.get('performance_metrics', {}).get('rmse', 'N/A')}")
         
+        # Get prediction data
+        predicted_data = evaluator.get_prediction_data()
+        
         # Save report to file
         try:
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -87,7 +91,31 @@ def handle_prediction(config, logger, model=None):
         except Exception as e:
             logger.error(f"Failed to save evaluation report: {str(e)}")
         
-        return evaluator.get_prediction_data()
+        # After generating predictions, handle automated ordering
+        if not predicted_data.empty:
+            logger.info("Processing predictions for automated ordering")
+            inventory_manager = InventoryManager(config)
+            
+            # Update product cache first
+            inventory_manager.update_product_cache()
+            
+            # Process orders
+            order_result = inventory_manager.execute_orders(config['data']['predictions_path'])
+            
+            if order_result['status'] == 'success':
+                logger.info(
+                    f"Orders processed successfully. "
+                    f"Items ordered: {order_result.get('items_ordered', 0)}, "
+                    f"Total cost: ${order_result.get('total_cost', 0):.2f}"
+                )
+                if order_result.get('report_path'):
+                    logger.info(f"Order report generated: {order_result['report_path']}")
+            else:
+                logger.error(f"Order processing failed: {order_result.get('message')}")
+        else:
+            logger.warning("No prediction data available for automated ordering")
+        
+        return predicted_data
     except Exception as e:
         logger.error(f"Prediction pipeline failed: {str(e)}")
         logger.debug(traceback.format_exc())
